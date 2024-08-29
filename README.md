@@ -1,40 +1,54 @@
-# Created by https://www.toptal.com/developers/gitignore/api/terraform
-# Edit at https://www.toptal.com/developers/gitignore?templates=terraform
+# Serverless K6 Load Testing
 
-### Terraform ###
-# Local .terraform directories
-**/.terraform/*
+このリポジトリは、AWS Lambda上でk6を使用したサーバーレス負荷試験の設定および実行方法を提供します。Terraformを使用してインフラストラクチャを管理し、Lambda関数をデプロイすることで、手軽に分散負荷試験を行うことが可能です。
 
-# .tfstate files
-*.tfstate
-*.tfstate.*
+## ディレクトリ構造
 
-# Crash log files
-crash.log
-crash.*.log
+```
+├── README.md
+├── lambda
+│   ├── k6_lambda.zip
+│   └── src
+│       ├── bootstrap
+│       ├── jq
+│       ├── k6
+│       └── simple.js
+└── terraform
+    ├── main.tf
+    ├── terraform.tfstate
+    └── terraform.tfstate.backup
+```
 
-# Exclude all .tfvars files, which are likely to contain sensitive data, such as
-# password, private keys, and other secrets. These should not be part of version
-# control as they are data points which are potentially sensitive and subject
-# to change depending on the environment.
-*.tfvars
-*.tfvars.json
+### `lambda/`
+このディレクトリには、AWS Lambda関数として実行されるk6のコードとその依存ファイルが含まれています。
 
-# Ignore override files as they are usually used to override resources locally and so
-# are not checked in
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
+- `k6_lambda.zip`: Lambda関数としてデプロイされるアーカイブファイル。このファイルには、`src/`ディレクトリの内容が含まれています。
+- `src/`: Lambda関数の実行に必要なファイル群。
+  - `bootstrap`: Lambda関数が実行される際のエントリーポイントとなるスクリプト。
+  - `jq`: JSON処理ツール。このプロジェクトでは、k6の実行結果を加工するために使用します。
+  - `k6`: k6の実行バイナリファイル。
+  - `simple.js`: 実際にk6で実行される負荷試験のスクリプト。このスクリプトにより、指定したターゲットに対する負荷試験を実行します。
 
-# Include override files you do wish to add to version control using negated pattern
-# !example_override.tf
+### `terraform/`
+このディレクトリには、AWSインフラストラクチャを構築するためのTerraform設定ファイルが含まれています。
 
-# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
-# example: *tfplan*
+- `main.tf`: AWSリソースを定義するTerraformのメイン構成ファイル。Lambda関数のデプロイ、IAMロールの設定、その他必要なリソースの作成が記述されています。
+- `terraform.tfstate`: 現在のインフラストラクチャの状態を管理するためのファイル。このファイルにより、Terraformはリソースの変更を適切に適用します。
+- `terraform.tfstate.backup`: `terraform.tfstate`のバックアップファイル。
 
-# Ignore CLI configuration files
-.terraformrc
-terraform.rc
+## 使い方
 
-# End of https://www.toptal.com/developers/gitignore/api/terraform
+1. **Terraformによるインフラ構築**:
+    - `terraform`ディレクトリに移動し、Terraformを実行してインフラをデプロイします。
+    - 以下のコマンドを使用してインフラをデプロイします:
+      ```bash
+      terraform init
+      terraform apply
+      ```
+
+2. **Lambda関数のデプロイ**:
+    - `lambda/k6_lambda.zip` ファイルを用意し、TerraformによってLambda関数としてデプロイされます。
+
+3. **負荷試験の実行**:
+    - デプロイされたLambda関数がk6を実行し、ターゲットに対する負荷試験を開始します。
+    - 結果はCloudWatchに送信され、後で分析することが可能です。
